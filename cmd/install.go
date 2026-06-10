@@ -12,10 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// hookScript is the shell script injected into .git/hooks/prepare-commit-msg.
+// hookScriptTmpl is the shell script injected into .git/hooks/prepare-commit-msg.
+// It uses %s to inject the absolute path of the attest-cli executable.
 // It includes a bypass for ATTEST_DEV_MODE so developers can disable the hook
 // without uninstalling it.
-const hookScript = `#!/bin/sh
+const hookScriptTmpl = `#!/bin/sh
 # attest-cli: prepare-commit-msg hook
 # This hook is managed by attest-cli. Do not edit manually.
 
@@ -23,7 +24,7 @@ if [ -n "$ATTEST_DEV_MODE" ]; then
   exit 0
 fi
 
-attest internal-hook "$@"
+"%s" internal-hook "$@"
 `
 
 // installCmd installs the prepare-commit-msg git hook into the current repository.
@@ -62,8 +63,18 @@ func runInstall() error {
 	}
 
 	// 3. Write the prepare-commit-msg hook with executable permissions.
+	execPath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to determine executable path: %w", err)
+	}
+	absExecPath, err := filepath.Abs(execPath)
+	if err != nil {
+		absExecPath = execPath
+	}
+
 	hookPath := filepath.Join(hooksDir, "prepare-commit-msg")
-	if err := os.WriteFile(hookPath, []byte(hookScript), 0755); err != nil {
+	hookContent := fmt.Sprintf(hookScriptTmpl, absExecPath)
+	if err := os.WriteFile(hookPath, []byte(hookContent), 0755); err != nil {
 		return fmt.Errorf("failed to write hook file: %w", err)
 	}
 
