@@ -31,7 +31,7 @@ Extracts the developer's prompts from their AI coding tools:
 | Tool | What's Captured |
 |------|----------------|
 | Claude Code | User prompts from `~/.claude/projects/` session logs |
-| Antigravity (Gemini) | User prompts from `transcript.jsonl` conversation logs |
+| Antigravity IDE | User prompts from `transcript.jsonl` conversation logs |
 | GitHub Copilot | JSON/JSONL session logs from VS Code workspace storage |
 | Cursor | JSON/JSONL session logs from Cursor workspace storage |
 
