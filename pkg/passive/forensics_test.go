@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/util"
+	"github.com/SaaSAILabs/git-attest/pkg/util"
 )
 
 // createTempFileWithMtime creates a temp file and sets its mtime to the given time.

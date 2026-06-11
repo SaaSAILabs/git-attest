@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/active"
-	"github.com/SaaSAILabs/attest-cli.git/pkg/util"
+	"github.com/SaaSAILabs/git-attest/pkg/active"
+	"github.com/SaaSAILabs/git-attest/pkg/util"
 )
 
 type TimelineMetrics struct {

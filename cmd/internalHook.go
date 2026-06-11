@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/active"
-	"github.com/SaaSAILabs/attest-cli.git/pkg/passive"
-	"github.com/SaaSAILabs/attest-cli.git/pkg/payload"
-	"github.com/SaaSAILabs/attest-cli.git/pkg/privacy"
+	"github.com/SaaSAILabs/git-attest/pkg/active"
+	"github.com/SaaSAILabs/git-attest/pkg/passive"
+	"github.com/SaaSAILabs/git-attest/pkg/payload"
+	"github.com/SaaSAILabs/git-attest/pkg/privacy"
 	"github.com/spf13/cobra"
 )
 

@@ -1,4 +1,4 @@
-module github.com/SaaSAILabs/attest-cli.git
+module github.com/SaaSAILabs/git-attest
 
 go 1.26.4
 

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/privacy"
+	"github.com/SaaSAILabs/git-attest/pkg/privacy"
 )
 
 // TimeWindow represents the period between the previous commit and the current commit.

@@ -1,7 +1,7 @@
 class GitAttest < Formula
   desc "Transparency certificates for AI-assisted code contributions"
-  homepage "https://github.com/SaaSAILabs/attest-cli"
-  url "https://github.com/SaaSAILabs/attest-cli/archive/refs/tags/v0.1.0.tar.gz"
+  homepage "https://github.com/SaaSAILabs/git-attest"
+  url "https://github.com/SaaSAILabs/git-attest/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "PLACEHOLDER_SHA256"
   license "Apache-2.0"
 

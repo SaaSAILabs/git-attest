@@ -3,7 +3,7 @@ package payload
 import (
 	"sort"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/active"
+	"github.com/SaaSAILabs/git-attest/pkg/active"
 )
 
 // SortEvents sorts a slice of FlightEvents chronologically by timestamp.

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/util"
+	"github.com/SaaSAILabs/git-attest/pkg/util"
 )
 
 // ClaudeLogRecord is a targeted struct for unmarshalling Claude Code JSONL lines.

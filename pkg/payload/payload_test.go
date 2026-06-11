@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SaaSAILabs/attest-cli.git/pkg/active"
-	"github.com/SaaSAILabs/attest-cli.git/pkg/passive"
+	"github.com/SaaSAILabs/git-attest/pkg/active"
+	"github.com/SaaSAILabs/git-attest/pkg/passive"
 )
 
 func TestBuild_MergesAndSortsEvents(t *testing.T) {

@@ -61,7 +61,7 @@ The evidence never leaves your Git infrastructure. It travels as a Git Note — 
 
 ## Reading the Signals — What Intent Looks Like
 
-Different workflows leave different fingerprints. Here's how three real-world scenarios would appear in a git-attest certificate:
+Different workflows leave different fingerprints. Here's how different real-world scenarios would appear in a git-attest certificate:
 
 ### Scenario 1: Developer using an Agentic IDE (Cursor, Antigravity)
 
@@ -155,14 +155,14 @@ That's it. No per-repo setup. No configuration files. Every repository on your m
 
 **Go Install:**
 ```bash
-go install github.com/SaaSAILabs/attest-cli@latest
+go install github.com/SaaSAILabs/git-attest@latest
 git attest init   # one-time global setup
 ```
 
 **From Source:**
 ```bash
-git clone https://github.com/SaaSAILabs/attest-cli.git
-cd attest-cli
+git clone https://github.com/SaaSAILabs/git-attest.git
+cd git-attest
 go build -o git-attest main.go
 sudo mv git-attest /usr/local/bin/
 git attest init
@@ -368,8 +368,8 @@ Developer's Machine                          GitHub
 Contributions are welcome. Please open an issue first to discuss what you'd like to change.
 
 ```bash
-git clone https://github.com/SaaSAILabs/attest-cli.git
-cd attest-cli
+git clone https://github.com/SaaSAILabs/git-attest.git
+cd git-attest
 go test ./...
 go build -o git-attest main.go
 ```
