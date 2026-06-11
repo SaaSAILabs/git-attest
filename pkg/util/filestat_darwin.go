@@ -8,11 +8,6 @@ import (
 	"time"
 )
 
-type FileTimestamps struct {
-	Mtime time.Time
-	Ctime time.Time
-	Btime time.Time
-}
 
 func GetFileTimestamps(info os.FileInfo) FileTimestamps {
 	stat := info.Sys().(*syscall.Stat_t)
