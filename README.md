@@ -6,6 +6,9 @@ A transparency layer for the age of AI-assisted code. `git-attest` silently capt
 
 It doesn't detect malicious code. It doesn't judge *what* the code does. It surfaces the signals that let a reviewer quickly understand whether a contribution was **intentful** — a developer who prompted thoughtfully, iterated on their work, and reviewed before committing — or **low-effort** — code that appeared in a single batch with no visible human involvement. Regardless of what tools were used to write it.
 
+* **For Maintainers:** Adopting git-attest helps you quickly cut through the noise of AI generated PRs. Use the generated PR Quality Card to instantly verify which PRs had a thoughtful human behind them, vs a lazy actor/bot.
+* **For Contributors:** Showcase your engineering process effortlessly. Contributions with strong verification signals stand out instantly.
+
 ---
 
 ## The Problem
@@ -16,7 +19,7 @@ Open source maintainers are facing a new reality:
 - **Traditional code review doesn't scale** when a single contributor can generate hundreds of files in minutes.
 - **You can't tell intent from a diff.** A perfectly formatted PR could be a thoughtful contribution or an automated supply chain attack. The code looks the same.
 
-What's missing isn't better static analysis. It's **provenance** — evidence of *how* the code was constructed, not just what it contains.
+What's missing isn't better static analysis. It's **transparency** — evidence of *how* the code was constructed, not just what it contains.
 
 ## What git-attest Does
 
