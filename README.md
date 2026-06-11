@@ -146,7 +146,7 @@ ctime drift:          3           3 files have ctime ≠ mtime (timestamps were 
 
 **Option 1: Mac / Linux (Homebrew)**
 ```bash
-brew install SaaSAILabs/tap/git-attest
+brew install SaaSAILabs/git-attest/git-attest
 ```
 
 **Option 2: Mac / Linux (Install Script)**

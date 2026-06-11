@@ -25,7 +25,8 @@ snapshot:
 brews:
   - repository:
       owner: SaaSAILabs
-      name: homebrew-tap
+      name: git-attest
+    directory: Formula
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
