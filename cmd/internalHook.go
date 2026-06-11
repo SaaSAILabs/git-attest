@@ -89,13 +89,40 @@ func runInternalHook() error {
 		return fmt.Errorf("git notes attach failed: %w", err)
 	}
 
+	// --- 6. Lazy push config: ensure this repo pushes notes on bare 'git push' ---
+	ensureNotesRefspec()
+
 	fmt.Fprintf(os.Stderr, "[attest] ✓ flight recorder attached (%d events)\n", len(note.FlightRecorder))
 	return nil
 }
 
+// ensureNotesRefspec lazily configures remote.origin.push to include
+// notes alongside code when the developer runs bare 'git push'.
+// This runs silently on every commit but is a no-op if already configured.
+func ensureNotesRefspec() {
+	// Check if origin remote exists.
+	if err := exec.Command("git", "remote", "get-url", "origin").Run(); err != nil {
+		return
+	}
+
+	// Check if push refspecs are already configured.
+	out, _ := exec.Command("git", "config", "--get-all", "remote.origin.push").Output()
+	if strings.Contains(string(out), "refs/notes") {
+		return // Already configured
+	}
+
+	// If no push refspecs exist yet, add HEAD first.
+	if len(strings.TrimSpace(string(out))) == 0 {
+		_ = exec.Command("git", "config", "--add", "remote.origin.push", "HEAD").Run()
+	}
+
+	// Add notes refspec.
+	_ = exec.Command("git", "config", "--add", "remote.origin.push", "+refs/notes/*:refs/notes/*").Run()
+}
+
 // getStagedFiles returns the list of staged file paths from git.
 func getStagedFiles() ([]string, error) {
-	out, err := exec.Command("git", "diff", "--cached", "--name-only").Output()
+	out, err := exec.Command("git", "diff", "--cached", "--name-only", "--diff-filter=d").Output()
 	if err != nil {
 		return nil, err
 	}

@@ -136,30 +136,38 @@ func TestCalculateTimelineMetrics_MissingFile(t *testing.T) {
 	}
 }
 
-func TestComputeStaggerIndex_MachineBatch(t *testing.T) {
+func TestComputeForensicProfile_MachineBatch(t *testing.T) {
 	base := time.Date(2025, 6, 1, 12, 0, 0, 0, time.UTC)
-	// All files modified at the exact same second (uniform modification clock tick)
-	mtimes := []time.Time{base, base, base, base, base}
+	stamps := []util.FileTimestamps{
+		{Mtime: base},
+		{Mtime: base},
+		{Mtime: base},
+	}
 	
-	idx := computeStaggerIndex(mtimes)
-	if idx != 0.0 {
-		t.Errorf("expected StaggerIndex 0.0 for machine batch, got %v", idx)
+	profile := computeForensicProfile(stamps)
+	if profile.AvgModIntervalMs != 0 || profile.MaxModIntervalMs != 0 || profile.MinModIntervalMs != 0 {
+		t.Errorf("expected 0 intervals for machine batch, got avg=%v max=%v min=%v", profile.AvgModIntervalMs, profile.MaxModIntervalMs, profile.MinModIntervalMs)
 	}
 }
 
-func TestComputeStaggerIndex_HumanSequential(t *testing.T) {
+func TestComputeForensicProfile_HumanSequential(t *testing.T) {
 	base := time.Date(2025, 6, 1, 12, 0, 0, 0, time.UTC)
-	// Files modified sequentially over time
-	mtimes := []time.Time{
-		base.Add(1 * time.Second),
-		base.Add(15 * time.Second),
-		base.Add(45 * time.Second),
-		base.Add(120 * time.Second),
+	stamps := []util.FileTimestamps{
+		{Mtime: base},
+		{Mtime: base.Add(1 * time.Second)}, // 1s
+		{Mtime: base.Add(4 * time.Second)}, // 3s
+		{Mtime: base.Add(10 * time.Second)}, // 6s
 	}
 	
-	idx := computeStaggerIndex(mtimes)
-	if idx != 1.0 {
-		t.Errorf("expected StaggerIndex 1.0 for sequential human writes, got %v", idx)
+	profile := computeForensicProfile(stamps)
+	if profile.MinModIntervalMs != 1000 {
+		t.Errorf("expected MinModIntervalMs 1000, got %v", profile.MinModIntervalMs)
+	}
+	if profile.MaxModIntervalMs != 6000 {
+		t.Errorf("expected MaxModIntervalMs 6000, got %v", profile.MaxModIntervalMs)
+	}
+	if profile.AvgModIntervalMs != (1000+3000+6000)/3 {
+		t.Errorf("expected AvgModIntervalMs 3333, got %v", profile.AvgModIntervalMs)
 	}
 }
 

@@ -18,11 +18,13 @@ type TimelineMetrics struct {
 }
 
 type ForensicProfile struct {
-	StaggerIndex    float64 `json:"mtime_stagger_ratio_0_to_1"`
-	CtimeDriftFiles int     `json:"files_with_ctime_drift"`
-	CtimeDriftMaxMs int64   `json:"max_ctime_mtime_drift_ms"`
-	NewFileCount    int     `json:"newly_created_file_count"`
-	TotalFiles      int     `json:"total_staged_files"`
+	AvgModIntervalMs int64 `json:"avg_mod_interval_ms"`
+	MaxModIntervalMs int64 `json:"max_mod_interval_ms"`
+	MinModIntervalMs int64 `json:"min_mod_interval_ms"`
+	CtimeDriftFiles  int   `json:"files_with_ctime_drift"`
+	CtimeDriftMaxMs  int64 `json:"max_ctime_mtime_drift_ms"`
+	NewFileCount     int   `json:"newly_created_file_count"`
+	TotalFiles       int   `json:"total_staged_files"`
 }
 
 func CalculateTimelineMetrics(files []string, commitTime time.Time) (*TimelineMetrics, error) {
@@ -83,14 +85,33 @@ func computeForensicProfile(stamps []util.FileTimestamps) ForensicProfile {
 		return ForensicProfile{}
 	}
 
-	mtimes := make([]time.Time, n)
-	for i, s := range stamps {
-		mtimes[i] = s.Mtime
+	profile := ForensicProfile{
+		TotalFiles: n,
 	}
 
-	profile := ForensicProfile{
-		StaggerIndex: computeStaggerIndex(mtimes),
-		TotalFiles:   n,
+	if n > 1 {
+		var totalInterval int64
+		var maxInterval int64
+		var minInterval int64 = -1
+
+		for i := 1; i < n; i++ {
+			interval := stamps[i].Mtime.Sub(stamps[i-1].Mtime).Milliseconds()
+			totalInterval += interval
+			if interval > maxInterval {
+				maxInterval = interval
+			}
+			if minInterval == -1 || interval < minInterval {
+				minInterval = interval
+			}
+		}
+
+		if minInterval == -1 {
+			minInterval = 0
+		}
+
+		profile.AvgModIntervalMs = totalInterval / int64(n-1)
+		profile.MaxModIntervalMs = maxInterval
+		profile.MinModIntervalMs = minInterval
 	}
 
 	const driftThresholdMs = 100
@@ -109,18 +130,4 @@ func computeForensicProfile(stamps []util.FileTimestamps) ForensicProfile {
 	}
 
 	return profile
-}
-
-// computeStaggerIndex measures how spread out file modification times are.
-// 0.0 = all files modified in the same second (machine batch).
-// 1.0 = every file modified in a distinct second (human sequential).
-func computeStaggerIndex(mtimes []time.Time) float64 {
-	if len(mtimes) <= 1 {
-		return 0.0
-	}
-	buckets := make(map[int64]struct{})
-	for _, t := range mtimes {
-		buckets[t.Unix()] = struct{}{}
-	}
-	return float64(len(buckets)-1) / float64(len(mtimes)-1)
 }
