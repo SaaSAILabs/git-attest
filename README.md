@@ -29,8 +29,8 @@ Extracts the developer's prompts from their AI coding tools:
 |------|----------------|
 | Claude Code | User prompts from `~/.claude/projects/` session logs |
 | Antigravity (Gemini) | User prompts from `transcript.jsonl` conversation logs |
-| GitHub Copilot | Chat prompts from VS Code workspace state |
-| Cursor | Chat prompts from Cursor workspace state |
+| GitHub Copilot | JSON/JSONL session logs from VS Code workspace storage |
+| Cursor | JSON/JSONL session logs from Cursor workspace storage |
 
 If a developer asked their AI assistant *"Add an authentication endpoint with rate limiting"*, that prompt is captured. If there are no prompts — the code appeared without any recorded human intent — that absence is itself a signal.
 
@@ -144,30 +144,23 @@ ctime drift:          3           3 files have ctime ≠ mtime (timestamps were 
 
 ## Install
 
+**Option 1: Mac / Linux (Homebrew)**
 ```bash
-brew install git-attest
+brew install SaaSAILabs/tap/git-attest
 ```
 
-That's it. No per-repo setup. No configuration files. Every repository on your machine is automatically instrumented.
+**Option 2: Mac / Linux (Install Script)**
+```bash
+curl -sSL https://raw.githubusercontent.com/SaaSAILabs/git-attest/main/install.sh | bash
+```
 
-<details>
-<summary><strong>Other installation methods</strong></summary>
-
-**Go Install:**
+**Option 3: Any OS (Requires Go)**
 ```bash
 go install github.com/SaaSAILabs/git-attest@latest
 git attest init   # one-time global setup
 ```
 
-**From Source:**
-```bash
-git clone https://github.com/SaaSAILabs/git-attest.git
-cd git-attest
-go build -o git-attest main.go
-sudo mv git-attest /usr/local/bin/
-git attest init
-```
-</details>
+That's it. No per-repo setup. No configuration files. Every repository on your machine is automatically instrumented.
 
 ---
 
