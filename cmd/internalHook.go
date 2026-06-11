@@ -105,19 +105,19 @@ func ensureNotesRefspec() {
 		return
 	}
 
-	// Check if push refspecs are already configured.
-	out, _ := exec.Command("git", "config", "--get-all", "remote.origin.push").Output()
+	// Check if push refspecs are already configured locally.
+	out, _ := exec.Command("git", "config", "--local", "--get-all", "remote.origin.push").Output()
 	if strings.Contains(string(out), "refs/notes") {
 		return // Already configured
 	}
 
-	// If no push refspecs exist yet, add HEAD first.
+	// If no push refspecs exist locally yet, add HEAD first.
 	if len(strings.TrimSpace(string(out))) == 0 {
-		_ = exec.Command("git", "config", "--add", "remote.origin.push", "HEAD").Run()
+		_ = exec.Command("git", "config", "--local", "--add", "remote.origin.push", "HEAD").Run()
 	}
 
-	// Add notes refspec.
-	_ = exec.Command("git", "config", "--add", "remote.origin.push", "+refs/notes/*:refs/notes/*").Run()
+	// Add notes refspec locally.
+	_ = exec.Command("git", "config", "--local", "--add", "remote.origin.push", "+refs/notes/*:refs/notes/*").Run()
 }
 
 // getStagedFiles returns the list of staged file paths from git.
