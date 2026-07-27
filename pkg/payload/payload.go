@@ -11,7 +11,7 @@ import (
 	"github.com/SaaSAILabs/git-attest/pkg/passive"
 )
 
-const payloadVersion = "0.1.0"
+const payloadVersion = "0.1.1"
 
 // GitNotePayload is the top-level schema attached to a Git commit via git notes.
 type GitNotePayload struct {
