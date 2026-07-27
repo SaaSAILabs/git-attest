@@ -3,7 +3,10 @@ package active
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/SaaSAILabs/git-attest/pkg/privacy"
@@ -20,6 +23,33 @@ func (w TimeWindow) Overlaps(sessionBirth, sessionMtime time.Time) bool {
 	return !sessionMtime.Before(w.Start) && !sessionBirth.After(w.End)
 }
 
+// currentRepoRoot resolves the repository being committed. Extractors scope
+// their logs to it so prompts typed in other repositories are not attested
+// against this commit merely because their timestamps overlap.
+func currentRepoRoot() (string, error) {
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return "", fmt.Errorf("unable to resolve repository root: %w", err)
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// withinRepo reports whether a session's working directory belongs to repoRoot.
+// Subdirectories count; an empty repoRoot disables scoping.
+func withinRepo(cwd, repoRoot string) bool {
+	if repoRoot == "" {
+		return true
+	}
+	return cwd == repoRoot || strings.HasPrefix(cwd, repoRoot+string(filepath.Separator))
+}
+
+// sortEventsByTimestamp orders events chronologically in place.
+func sortEventsByTimestamp(events []FlightEvent) {
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].Timestamp < events[j].Timestamp
+	})
+}
+
 // Extractor defines the interface for harvesting FlightEvents from an AI tool's logs.
 type Extractor interface {
 	Name() string
@@ -31,6 +61,7 @@ type Extractor interface {
 func HarvestAll(window TimeWindow) []FlightEvent {
 	extractors := []Extractor{
 		&ClaudeExtractor{},
+		&CodexExtractor{},
 		&AntigravityExtractor{},
 		&CopilotExtractor{},
 		&CursorExtractor{},
@@ -69,14 +100,19 @@ type ClaudeExtractor struct{}
 func (c *ClaudeExtractor) Name() string { return "claude_code" }
 
 func (c *ClaudeExtractor) Extract(window TimeWindow) ([]FlightEvent, error) {
+	repoRoot, err := currentRepoRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	paths, err := FindRelevantSessions(window)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var allEvents []FlightEvent
 	for _, path := range paths {
-		events, err := ParseSessionFile(path)
+		events, err := ParseSessionFile(path, repoRoot)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[attest] warning: failed to parse %s: %v\n", path, err)
 			continue

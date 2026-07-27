@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 const mockSessionPayload = `{"type": "system", "uuid": "sys-1", "timestamp": "2025-02-20T09:10:00.000Z"}
@@ -19,7 +20,7 @@ func TestParseSessionFile(t *testing.T) {
 		t.Fatalf("failed to write mock fixture: %v", err)
 	}
 
-	events, err := ParseSessionFile(mockFile)
+	events, err := ParseSessionFile(mockFile, "")
 	if err != nil {
 		t.Fatalf("ParseSessionFile returned error: %v", err)
 	}
@@ -59,8 +60,44 @@ func TestParseSessionFile(t *testing.T) {
 	}
 }
 
+// TestFindRelevantSessions_Layout pins the on-disk layout Claude Code actually
+// writes: session logs sit directly under ~/.claude/projects/<slug>/, and
+// subagent transcripts nest one level deeper and must not be picked up.
+func TestFindRelevantSessions_Layout(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+
+	project := filepath.Join(home, ".claude", "projects", "-Users-me-repo")
+	subagents := filepath.Join(project, "session-uuid", "subagents")
+	if err := os.MkdirAll(subagents, 0755); err != nil {
+		t.Fatalf("failed to build fixture tree: %v", err)
+	}
+
+	session := filepath.Join(project, "3a4930a5-1c42-4cf2-85b2-1d5bf26a8bdd.jsonl")
+	if err := os.WriteFile(session, []byte(mockSessionPayload), 0644); err != nil {
+		t.Fatalf("failed to write session fixture: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(subagents, "agent-a0ee0643b.jsonl"), []byte(mockSessionPayload), 0644); err != nil {
+		t.Fatalf("failed to write subagent fixture: %v", err)
+	}
+
+	window := TimeWindow{Start: time.Time{}, End: time.Now().Add(24 * time.Hour)}
+	paths, err := FindRelevantSessions(window)
+	if err != nil {
+		t.Fatalf("FindRelevantSessions returned error: %v", err)
+	}
+
+	if len(paths) != 1 {
+		t.Fatalf("expected 1 session, got %d: %v", len(paths), paths)
+	}
+	if paths[0] != session {
+		t.Errorf("path = %q, want %q", paths[0], session)
+	}
+}
+
 func TestParseSessionFile_FileNotFound(t *testing.T) {
-	_, err := ParseSessionFile("/nonexistent/path.jsonl")
+	_, err := ParseSessionFile("/nonexistent/path.jsonl", "")
 	if err == nil {
 		t.Fatal("expected error for nonexistent file, got nil")
 	}
@@ -73,7 +110,7 @@ func TestParseSessionFile_EmptyFile(t *testing.T) {
 		t.Fatalf("failed to write empty fixture: %v", err)
 	}
 
-	events, err := ParseSessionFile(emptyFile)
+	events, err := ParseSessionFile(emptyFile, "")
 	if err != nil {
 		t.Fatalf("ParseSessionFile returned error on empty file: %v", err)
 	}

@@ -17,6 +17,7 @@ import (
 type ClaudeLogRecord struct {
 	Type      string    `json:"type"`
 	Timestamp time.Time `json:"timestamp"`
+	Cwd       string    `json:"cwd"`
 	Message   *struct {
 		Role    string      `json:"role"`
 		Content interface{} `json:"content"`
@@ -30,15 +31,16 @@ type FlightEvent struct {
 	Meta      map[string]interface{} `json:"meta"`
 }
 
-// FindRelevantSessions locates .jsonl files under ~/.claude/projects/*/sessions/
-// that overlap with the given TimeWindow.
+// FindRelevantSessions locates .jsonl files under ~/.claude/projects/*/
+// that overlap with the given TimeWindow. Nested subagent transcripts are
+// intentionally excluded: they record agent-to-agent turns, not human intent.
 func FindRelevantSessions(window TimeWindow) ([]string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve home directory: %w", err)
 	}
 
-	pattern := filepath.Join(home, ".claude", "projects", "*", "sessions", "*.jsonl")
+	pattern := filepath.Join(home, ".claude", "projects", "*", "*.jsonl")
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("glob error: %w", err)
@@ -73,7 +75,9 @@ func FindRelevantSessions(window TimeWindow) ([]string, error) {
 
 // ParseSessionFile reads a Claude Code .jsonl file line-by-line and extracts
 // user prompts as FlightEvent structs. Malformed lines are silently skipped.
-func ParseSessionFile(path string) ([]FlightEvent, error) {
+// Records whose cwd falls outside repoRoot are skipped; an empty repoRoot
+// disables repo scoping.
+func ParseSessionFile(path string, repoRoot string) ([]FlightEvent, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open session file: %w", err)
@@ -82,6 +86,10 @@ func ParseSessionFile(path string) ([]FlightEvent, error) {
 
 	var events []FlightEvent
 	scanner := bufio.NewScanner(f)
+	// Session lines routinely exceed bufio's 64KB default; without this the
+	// scanner errors out and the caller discards the whole session.
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 10*1024*1024)
 
 	for scanner.Scan() {
 		line := scanner.Bytes()
@@ -92,6 +100,10 @@ func ParseSessionFile(path string) ([]FlightEvent, error) {
 		}
 
 		if record.Type != "user" || record.Message == nil {
+			continue
+		}
+
+		if !withinRepo(record.Cwd, repoRoot) {
 			continue
 		}
 
