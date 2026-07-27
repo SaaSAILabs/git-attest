@@ -5,20 +5,20 @@
 class GitAttest < Formula
   desc "A transparency layer for the age of AI-assisted code."
   homepage "https://github.com/SaaSAILabs/git-attest"
-  version "0.1.0"
+  version "0.1.1"
 
   on_macos do
     on_intel do
-      url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.0/git-attest_Darwin_x86_64.tar.gz"
-      sha256 "e9bce027430d081bbab73d38948a51ac3df6baf8e7a0a22f0b50fb793cd7e84b"
+      url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.1/git-attest_Darwin_x86_64.tar.gz"
+      sha256 "3b790a5d7400dee1c6f9cb3ded81a98efeb2be730c0f611c88f63cf0e0d74e9d"
 
       def install
         bin.install "git-attest"
       end
     end
     on_arm do
-      url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.0/git-attest_Darwin_arm64.tar.gz"
-      sha256 "4441c3573eca6325772a89a61f604f2ccf93b734c37c53adfcd177fd9043c6f2"
+      url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.1/git-attest_Darwin_arm64.tar.gz"
+      sha256 "4c99f54cbcdf282d789ce92f96397a0408cc39c175654cd7573aad65cae552ec"
 
       def install
         bin.install "git-attest"
@@ -29,8 +29,8 @@ class GitAttest < Formula
   on_linux do
     on_intel do
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.0/git-attest_Linux_x86_64.tar.gz"
-        sha256 "e775d0e799b9151575151080c121729bdbdcd44b1082cbc263374c73a5841453"
+        url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.1/git-attest_Linux_x86_64.tar.gz"
+        sha256 "d370d4dee068100931b37c86e8115007c3825988dfcaeae40a890dc8b79f4b90"
 
         def install
           bin.install "git-attest"
@@ -39,8 +39,8 @@ class GitAttest < Formula
     end
     on_arm do
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.0/git-attest_Linux_arm64.tar.gz"
-        sha256 "7fc42b47b02d60e5fc2fc5ccaba48f1e0b7d8f60d4e616145f0db7cb78d056a3"
+        url "https://github.com/SaaSAILabs/git-attest/releases/download/v0.1.1/git-attest_Linux_arm64.tar.gz"
+        sha256 "0cadf0908dfaeefd3e81af1c1ce602dc6cd4e0cd79f331a606ce7625b519036d"
 
         def install
           bin.install "git-attest"
