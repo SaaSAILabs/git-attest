@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
 )
 
 // chatSessionJSON represents the schema for a workspace chatSession .json file.
@@ -187,8 +187,40 @@ func extractEvents(requests []chatRequest, window TimeWindow, daemon string, sou
 	return events
 }
 
-// ParseVSCodeChatFiles discovers and parses all relevant .json and .jsonl files in basePath
-func ParseVSCodeChatFiles(basePath string, window TimeWindow, daemon string) ([]FlightEvent, error) {
+// resolveVSCodeWorkspaceFolder walks up from a chat session file to its
+// workspaceStorage/<hash>/workspace.json and returns the opened folder path.
+// It returns "" when the session has no single associated folder — empty-window
+// chats or multi-root .code-workspace sessions — which the caller treats as
+// unattributable and therefore out of scope.
+//
+// Note: the folder is the editor's opened workspace, which may differ from the
+// git repository root. A workspace opened at or inside the repo matches; one
+// opened at a parent directory spanning several repos does not, and its chats
+// are excluded rather than attributed to this repo on a guess.
+func resolveVSCodeWorkspaceFolder(chatFile string) string {
+	hashDir := filepath.Dir(filepath.Dir(chatFile)) // .../<hash>/chatSessions/file -> .../<hash>
+	data, err := os.ReadFile(filepath.Join(hashDir, "workspace.json"))
+	if err != nil {
+		return ""
+	}
+	var ws struct {
+		Folder string `json:"folder"`
+	}
+	if err := json.Unmarshal(data, &ws); err != nil || ws.Folder == "" {
+		return ""
+	}
+	u, err := url.Parse(ws.Folder)
+	if err != nil || u.Scheme != "file" {
+		return ""
+	}
+	return filepath.Clean(u.Path)
+}
+
+// ParseVSCodeChatFiles discovers and parses all relevant .json and .jsonl files
+// in basePath. When repoRoot is non-empty, chats are scoped to the repository:
+// only sessions whose workspace folder is the repo root or a subdirectory of it
+// are kept, so prompts from other workspaces are not attested against this repo.
+func ParseVSCodeChatFiles(basePath string, window TimeWindow, daemon string, repoRoot string) ([]FlightEvent, error) {
 	files, err := findChatSessionFiles(basePath, window)
 	if err != nil {
 		return nil, err
@@ -196,6 +228,10 @@ func ParseVSCodeChatFiles(basePath string, window TimeWindow, daemon string) ([]
 
 	var allEvents []FlightEvent
 	for _, file := range files {
+		if repoRoot != "" && !withinRepo(resolveVSCodeWorkspaceFolder(file), repoRoot) {
+			continue // belongs to another workspace, or none we can attribute
+		}
+
 		ext := strings.ToLower(filepath.Ext(file))
 		var events []FlightEvent
 		var err error

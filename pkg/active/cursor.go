@@ -10,18 +10,23 @@ type CursorExtractor struct{}
 func (c *CursorExtractor) Name() string { return "cursor" }
 
 func (c *CursorExtractor) Extract(window TimeWindow) ([]FlightEvent, error) {
+	repoRoot, err := currentRepoRoot()
+	if err != nil {
+		return nil, err
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}
 
 	basePath := filepath.Join(home, "Library", "Application Support", "Cursor", "User")
-	
+
 	// Test override
 	if testPath := os.Getenv("ATTEST_TEST_CURSOR_DB_PATH"); testPath != "" {
 		// Just use the provided path for testing
 		basePath = testPath
 	}
 
-	return ParseVSCodeChatFiles(basePath, window, "cursor")
+	return ParseVSCodeChatFiles(basePath, window, "cursor", repoRoot)
 }
